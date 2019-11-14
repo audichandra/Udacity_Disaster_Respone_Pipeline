@@ -8,6 +8,7 @@ import pandas as pd
 import pickle
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
 from sqlalchemy import create_engine
 
 from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score, f1_score, fbeta_score, classification_report
@@ -22,9 +23,9 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 def load_data(database_filepath):
     engine = create_engine('sqlite:///'+database_filepath)
-    df = pd.read_sql_table('DisData', con=engine)
+    df = pd.read_sql_table('DisasData', con=engine)
     X = df['message']
-    Y = df.iloc[:,4:]
+    Y = df.drop(['id','message','original','genre'], axis=1)
     category_names = Y.columns
     return X, Y, category_names 
 
@@ -44,44 +45,27 @@ def tokenize(text):
         clean_tokens.append(clean_tok)
 
     return clean_tokens
-
-class StartingVerbExtractor(BaseEstimator, TransformerMixin):
-
-    def starting_verb(self, text):
-        sentence_list = nltk.sent_tokenize(text)
-        for sentence in sentence_list:
-            pos_tags = nltk.pos_tag(tokenize(sentence))
-            first_word, first_tag = pos_tags[0]
-            if first_tag in ['VB', 'VBP'] or first_word == 'RT':
-                return True
-        return False
-
-    def fit(self, X, Y=None):
-        return self
-
-    def transform(self, X):
-        X_tagged = pd.Series(X).apply(self.starting_verb)
-        return pd.DataFrame(X_tagged)
     
-
+    
 def build_model():
     pipeline =  Pipeline([
-    ('vect', CountVectorizer(tokenizer=tokenize)),
-    ('tfidf', TfidfTransformer()),
-    ('clf', MultiOutputClassifier(AdaBoostClassifier()))
-    ])
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
+        ])
 
     
-    parameters = {'clf__estimator__learning_rate': [0.1,0.5,1.0,2],
+    parameters = {'vect__ngram_range': [(1, 1), (1,2)],
+                'clf__estimator__learning_rate': [0.5,1.0,5,10],
                 'clf__estimator__n_estimators': [10,50,100]}
 
-    model = GridSearchCV(pipeline, parameters)
+    model = GridSearchCV(pipeline, parameters, verbose=2, n_jobs=3, cv=2)
     return model
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
     Y_pred = model.predict(X_test)
-    print(accuracy_score(Y_test.iloc[:,1:].values, np.array([x[1:] for x in Y_pred])))
+    print('Accuracy Score: {}'.format(np.mean(Y_test.values == Y_pred)))
     print(classification_report(Y_test.iloc[:,1:].values, np.array([x[1:] for x in Y_pred]), target_names=category_names))
 
 

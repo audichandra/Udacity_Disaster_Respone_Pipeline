@@ -25,13 +25,14 @@ def clean_data(df):
         categories[column] = categories[column].astype(int) 
     
     df.drop('categories', axis=1, inplace=True) 
+    df = pd.concat([df, categories], axis = 1)
     df.drop_duplicates(inplace=True) 
     return df 
 
 
 def save_data(df, database_filename):
     engine = create_engine('sqlite:///{}'.format(database_filename))
-    df.to_sql('DisData', engine, index=False)
+    df.to_sql('DisasData', engine, index=False)
       
 
 

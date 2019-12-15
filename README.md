@@ -5,7 +5,7 @@
 2. [Installation](https://github.com/audichandra/Udacity_Disaster_Respone_Pipeline#Installation)
 3. [File Descriptions](https://github.com/audichandra/Udacity_Disaster_Respone_Pipeline#File-Descriptions)
 4. [Instructions](https://github.com/audichandra/Udacity_Disaster_Respone_Pipeline#Instructions)
-5. [Results](https://github.com/audichandra/Udacity_Disaster_Respone_PipelineI#Results)
+5. [Results](https://github.com/audichandra/Udacity_Disaster_Respone_Pipeline#Results)
 6. [Licensing, Authors, and Acknowledgements](https://github.com/audichandra/Udacity_Disaster_Respone_Pipeline#Licensing)
 
 
